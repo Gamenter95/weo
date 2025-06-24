@@ -1,0 +1,14 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1e1e2e, #0e0e1e);
+  animation: bgshift 10s infinite alternate;
+}
+
+@keyframes bgshift {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
+
+video {
+  object-fit: cover;
+}
