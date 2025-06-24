@@ -3,25 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Weoo Chat</title>
+  <title>Weo – Anonymous Video Chat</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f0f1f, #1f1f3f);
+      animation: gradientShift 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 100%; }
+    }
+
+    .neon {
+      text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-[#0f0f1f] to-[#1f1f2f] text-white h-screen overflow-hidden flex flex-col justify-center items-center">
-  <div class="text-3xl font-bold mb-6 animate-bounce">🌐 Weoo Anonymous Video Chat</div>
-  
-  <div class="flex gap-4 mb-4">
-    <video id="myVideo" autoplay playsinline muted class="w-40 h-40 rounded-2xl border-2 border-green-500"></video>
-    <video id="peerVideo" autoplay playsinline class="w-40 h-40 rounded-2xl border-2 border-pink-500"></video>
+<body class="flex flex-col items-center justify-center h-screen text-white px-4">
+
+  <h1 class="text-3xl font-bold mb-4 neon">🌐 Welcome to Weo</h1>
+
+  <div class="flex flex-col sm:flex-row gap-4 items-center">
+    <video id="myVideo" autoplay muted playsinline class="rounded-2xl border-4 border-blue-400 w-60 h-40 bg-black"></video>
+    <video id="peerVideo" autoplay playsinline class="rounded-2xl border-4 border-pink-400 w-60 h-40 bg-black"></video>
   </div>
 
-  <div class="flex gap-4">
-    <button id="startBtn" class="bg-blue-500 px-4 py-2 rounded-xl hover:bg-blue-700 transition">Start Chat</button>
-    <button id="stopBtn" class="bg-red-500 px-4 py-2 rounded-xl hover:bg-red-700 transition">Stop</button>
+  <div class="mt-6 flex gap-4">
+    <button id="startBtn" class="bg-green-500 px-4 py-2 rounded-xl hover:bg-green-600 transition">Start Chat</button>
+    <button id="stopBtn" class="bg-red-500 px-4 py-2 rounded-xl hover:bg-red-600 transition">Stop</button>
   </div>
 
-  <div class="absolute bottom-4 text-sm opacity-60">🔄 Connecting to random user...</div>
+  <div id="status" class="mt-4 text-sm opacity-80 animate-pulse">🟡 Waiting for camera permission...</div>
 
   <script src="script.js"></script>
 </body>
