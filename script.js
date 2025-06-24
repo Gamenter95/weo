@@ -1,69 +1,107 @@
+// Firebase setup
+const firebaseConfig = {
+  apiKey: "AIzaSyBZL2br6mlJQt-w7nW_yQqbjFMYQI9mlEM",
+  authDomain: "weo-chat.firebaseapp.com",
+  projectId: "weo-chat",
+  storageBucket: "weo-chat.firebasestorage.app",
+  messagingSenderId: "394235063858",
+  appId: "1:394235063858:web:12b8f0d9934dce41bf562b",
+  measurementId: "G-1LQHF7XC90"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const myVideo = document.getElementById('myVideo');
 const peerVideo = document.getElementById('peerVideo');
+const chatBox = document.getElementById('chatBox');
+const chatInput = document.getElementById('chatInput');
 const status = document.getElementById('status');
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
+const peerName = document.getElementById('peerName');
 
-let localStream;
-let call;
-const peer = new Peer(undefined, {
-  host: 'peerjs.com',
-  port: 443,
-  secure: true
-});
+const names = ["Fox", "Cat", "Bear", "Otter", "Frog"];
+const countries = ["🇯🇵", "🇺🇸", "🇮🇳", "🇰🇷", "🇫🇷", "🇧🇷"];
+const myName = names[Math.floor(Math.random() * names.length)];
+const myCountry = countries[Math.floor(Math.random() * countries.length)];
 
-peer.on('open', id => {
-  console.log('Your peer ID:', id);
-  status.textContent = "✅ Connected to Weo Network";
-});
+let myPeer = new Peer();
+let localStream, call, conn;
+let matched = false;
 
-peer.on('call', incomingCall => {
-  incomingCall.answer(localStream);
-  incomingCall.on('stream', remoteStream => {
-    peerVideo.srcObject = remoteStream;
-    status.textContent = "🟢 You are now chatting!";
-    call = incomingCall;
+myPeer.on('open', id => {
+  console.log("Peer ID:", id);
+  db.ref("queue").once("value", async (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      const otherID = Object.keys(val)[0];
+      db.ref("queue/" + otherID).remove();
+      startChat(otherID);
+    } else {
+      db.ref("queue/" + id).set(true);
+    }
   });
 });
 
-startBtn.onclick = async () => {
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    myVideo.srcObject = localStream;
+async function startChat(peerId) {
+  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  myVideo.srcObject = localStream;
 
-    status.textContent = "🔍 Searching for a partner...";
-    
-    // Wait 3 seconds before searching for a random peer
-    setTimeout(() => {
-      // Simulated random peer
-      // Replace this with a real match system
-      const randomPeerId = prompt("Enter your friend's Peer ID to connect (for demo)");
+  call = myPeer.call(peerId, localStream);
+  call.on("stream", (remoteStream) => {
+    peerVideo.srcObject = remoteStream;
+    matched = true;
+    status.textContent = "🟢 Connected!";
+    peerName.textContent = "Stranger " + countries[Math.floor(Math.random() * countries.length)];
+  });
 
-      if (randomPeerId && randomPeerId !== peer.id) {
-        const outgoingCall = peer.call(randomPeerId, localStream);
-        outgoingCall.on('stream', remoteStream => {
-          peerVideo.srcObject = remoteStream;
-          status.textContent = "🟢 You are now chatting!";
-          call = outgoingCall;
-        });
-      } else {
-        status.textContent = "⚠️ Could not connect (same ID or canceled)";
-      }
-    }, 3000);
+  conn = myPeer.connect(peerId);
+  conn.on("data", data => {
+    chatBox.innerHTML += `<div><b>Stranger:</b> ${data}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+}
 
-  } catch (err) {
-    console.error("Permission denied or error:", err);
-    status.textContent = "❌ Permission denied or not supported!";
+myPeer.on("call", async incomingCall => {
+  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  myVideo.srcObject = localStream;
+  incomingCall.answer(localStream);
+  call = incomingCall;
+  incomingCall.on("stream", remoteStream => {
+    peerVideo.srcObject = remoteStream;
+    matched = true;
+    status.textContent = "🟢 Connected!";
+    peerName.textContent = "Stranger " + countries[Math.floor(Math.random() * countries.length)];
+  });
+});
+
+myPeer.on("connection", connection => {
+  conn = connection;
+  conn.on("data", data => {
+    chatBox.innerHTML += `<div><b>Stranger:</b> ${data}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+});
+
+chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && conn) {
+    const msg = chatInput.value;
+    chatInput.value = "";
+    chatBox.innerHTML += `<div class="text-right"><b>You:</b> ${msg}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    conn.send(msg);
   }
-};
+});
 
-stopBtn.onclick = () => {
+document.getElementById("stopBtn").onclick = () => {
   if (call) call.close();
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-    myVideo.srcObject = null;
-    peerVideo.srcObject = null;
-    status.textContent = "🔴 Chat stopped.";
-  }
+  if (conn) conn.close();
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  myVideo.srcObject = null;
+  peerVideo.srcObject = null;
+  chatBox.innerHTML = "";
+  status.textContent = "🔴 Chat stopped.";
 };
-                                    
+
+document.getElementById("startBtn").onclick = () => {
+  location.reload(); // easy way to reinitiate
+};
+          
