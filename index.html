@@ -3,40 +3,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Weo – Anonymous Video Chat</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+  <title>Weo – Anonymous Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet" />
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f0f1f, #1f1f3f);
-      animation: gradientShift 10s ease-in-out infinite alternate;
-    }
-
-    @keyframes gradientShift {
-      0% { background-position: 0 0; }
-      100% { background-position: 100% 100%; }
-    }
-
-    .neon {
-      text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="flex flex-col items-center justify-center h-screen text-white px-4">
+<body class="bg-gradient-to-br from-[#0f0f1f] to-[#1f1f2f] text-white flex flex-col items-center justify-center min-h-screen px-4">
 
-  <h1 class="text-3xl font-bold mb-4 neon">🌐 Welcome to Weo</h1>
+  <div class="text-3xl font-bold mb-6 text-cyan-400 animate-pulse">🌐 Weo</div>
 
-  <div class="flex flex-col sm:flex-row gap-4 items-center">
-    <video id="myVideo" autoplay muted playsinline class="rounded-2xl border-4 border-blue-400 w-60 h-40 bg-black"></video>
-    <video id="peerVideo" autoplay playsinline class="rounded-2xl border-4 border-pink-400 w-60 h-40 bg-black"></video>
+  <div class="text-sm text-center mb-4 opacity-70">Anonymous Random Video & Text Chat</div>
+
+  <div class="flex flex-col sm:flex-row items-center gap-4">
+    <div class="relative">
+      <video id="myVideo" autoplay muted playsinline class="w-64 h-40 rounded-xl border-4 border-cyan-500 bg-black"></video>
+      <div class="absolute top-1 left-1 text-xs bg-black bg-opacity-50 px-2 py-0.5 rounded">You</div>
+    </div>
+
+    <div class="relative">
+      <video id="peerVideo" autoplay playsinline class="w-64 h-40 rounded-xl border-4 border-pink-500 bg-black"></video>
+      <div id="peerName" class="absolute top-1 left-1 text-xs bg-black bg-opacity-50 px-2 py-0.5 rounded">Stranger 🇺🇸</div>
+    </div>
   </div>
 
-  <div class="mt-6 flex gap-4">
-    <button id="startBtn" class="bg-green-500 px-4 py-2 rounded-xl hover:bg-green-600 transition">Start Chat</button>
-    <button id="stopBtn" class="bg-red-500 px-4 py-2 rounded-xl hover:bg-red-600 transition">Stop</button>
+  <div class="flex gap-4 mt-4">
+    <button id="startBtn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl">Start Chat</button>
+    <button id="stopBtn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl">Stop</button>
   </div>
 
-  <div id="status" class="mt-4 text-sm opacity-80 animate-pulse">🟡 Waiting for camera permission...</div>
+  <div id="status" class="mt-4 text-sm animate-pulse text-cyan-300">🔄 Connecting to a stranger...</div>
+
+  <div class="mt-6 w-full max-w-md">
+    <div id="chatBox" class="bg-white text-black p-2 rounded-lg h-40 overflow-y-auto text-sm mb-2"></div>
+    <input id="chatInput" type="text" placeholder="Type a message..." class="w-full p-2 rounded-lg text-black" />
+  </div>
 
   <script src="script.js"></script>
 </body>
