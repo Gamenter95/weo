@@ -1,47 +1,69 @@
-let myPeer = new Peer();
-let conn;
-let localStream;
-let call;
-
 const myVideo = document.getElementById('myVideo');
 const peerVideo = document.getElementById('peerVideo');
+const status = document.getElementById('status');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 
-myPeer.on('open', id => {
-  console.log('My peer ID is: ' + id);
+let localStream;
+let call;
+const peer = new Peer(undefined, {
+  host: 'peerjs.com',
+  port: 443,
+  secure: true
+});
+
+peer.on('open', id => {
+  console.log('Your peer ID:', id);
+  status.textContent = "✅ Connected to Weo Network";
+});
+
+peer.on('call', incomingCall => {
+  incomingCall.answer(localStream);
+  incomingCall.on('stream', remoteStream => {
+    peerVideo.srcObject = remoteStream;
+    status.textContent = "🟢 You are now chatting!";
+    call = incomingCall;
+  });
 });
 
 startBtn.onclick = async () => {
-  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  myVideo.srcObject = localStream;
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    myVideo.srcObject = localStream;
 
-  myPeer.on('call', incomingCall => {
-    incomingCall.answer(localStream);
-    incomingCall.on('stream', stream => {
-      peerVideo.srcObject = stream;
-    });
-    call = incomingCall;
-  });
+    status.textContent = "🔍 Searching for a partner...";
+    
+    // Wait 3 seconds before searching for a random peer
+    setTimeout(() => {
+      // Simulated random peer
+      // Replace this with a real match system
+      const randomPeerId = prompt("Enter your friend's Peer ID to connect (for demo)");
 
-  fetch('https://0peer.herokuapp.com/getRandomPeer') // Replace this with your signaling logic
-    .then(res => res.json())
-    .then(data => {
-      if (data.peerId && data.peerId !== myPeer.id) {
-        const outgoingCall = myPeer.call(data.peerId, localStream);
-        outgoingCall.on('stream', stream => {
-          peerVideo.srcObject = stream;
+      if (randomPeerId && randomPeerId !== peer.id) {
+        const outgoingCall = peer.call(randomPeerId, localStream);
+        outgoingCall.on('stream', remoteStream => {
+          peerVideo.srcObject = remoteStream;
+          status.textContent = "🟢 You are now chatting!";
+          call = outgoingCall;
         });
-        call = outgoingCall;
+      } else {
+        status.textContent = "⚠️ Could not connect (same ID or canceled)";
       }
-    });
+    }, 3000);
+
+  } catch (err) {
+    console.error("Permission denied or error:", err);
+    status.textContent = "❌ Permission denied or not supported!";
+  }
 };
 
 stopBtn.onclick = () => {
   if (call) call.close();
   if (localStream) {
-    localStream.getTracks().forEach(t => t.stop());
+    localStream.getTracks().forEach(track => track.stop());
     myVideo.srcObject = null;
     peerVideo.srcObject = null;
+    status.textContent = "🔴 Chat stopped.";
   }
 };
+                                    
